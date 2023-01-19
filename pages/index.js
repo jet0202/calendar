@@ -1,11 +1,43 @@
 import Head from 'next/head'
 import Image from 'next/image'
-import { Inter } from '@next/font/google'
 import styles from '../styles/Home.module.css'
+import { add, daysInWeek, eachDayOfInterval, endOfMonth, endOfWeek, format, getDay, isAfter, isBefore, isEqual, isSameMonth, isToday, parse, startOfMonth, startOfToday } from 'date-fns'
+import { useState } from 'react'
 
-const inter = Inter({ subsets: ['latin'] })
+function classNames(...classes) {
+  return classes.filter(Boolean).join(' ')
+}
 
 export default function Home() {
+  let today = startOfToday()
+  const [selectedDay, setSelectedDay] = useState(today)
+  const [currentMonth, setCurrentMonth] = useState(format(today, 'MMMM-yyyy'))
+  let firstDayCurrentMonth = parse(currentMonth, 'MMMM-yyyy', new Date())
+
+  let monthDay = eachDayOfInterval({ start: firstDayCurrentMonth, end: endOfWeek(endOfMonth(firstDayCurrentMonth)) })
+  // console.log(today)
+  // console.log('selected', selectedDay)
+
+  const previousMonth = () => {
+    let firstDayNextMonth = add(firstDayCurrentMonth, { months: -1 })
+    setCurrentMonth(format(firstDayNextMonth, 'MMMM-yyyy'))
+  }
+  const nextMonth = () => {
+    let firstDayNextMonth = add(firstDayCurrentMonth, { months: 1 })
+    setCurrentMonth(format(firstDayNextMonth, 'MMMM-yyyy'))
+  }
+
+  const daySelect = (day) => {
+    if (isSameMonth(day, today)) {
+      setSelectedDay(day)
+    } else {
+      if (isAfter(day, today)) {
+        nextMonth();
+      }
+      setSelectedDay(day)
+    }
+  }
+
   return (
     <>
       <Head>
@@ -14,110 +46,310 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className={styles.main}>
-        <div className={styles.description}>
-          <p>
-            Get started by editing&nbsp;
-            <code className={styles.code}>pages/index.js</code>
-          </p>
-          <div>
-            <a
-              href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              By{' '}
-              <Image
-                src="/vercel.svg"
-                alt="Vercel Logo"
-                className={styles.vercelLogo}
-                width={100}
-                height={24}
-                priority
-              />
-            </a>
+      <main>
+        <h1 className='text-3xl underline font-bold text-blue-700'>Hello there</h1>
+
+
+        <div className="flex items-center justify-center py-8 px-4">
+          <div className="max-w-sm w-full shadow-lg">
+            <div className="md:p-8 p-5  bg-white rounded-t">
+              <div className="px-4 flex items-center justify-between">
+                <span tabIndex="0" className="focus:outline-none  text-base font-bold text-gray-600">{format(firstDayCurrentMonth, 'MMMM yyyy')}</span>
+                <div className="flex items-center">
+                  <button aria-label="calendar backward" onClick={previousMonth} className="focus:text-gray-400 hover:text-gray-400 text-gray-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-chevron-left" width="24" height="24" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                      <polyline points="15 6 9 12 15 18" />
+                    </svg>
+                  </button>
+                  <button aria-label="calendar forward" onClick={nextMonth} className="focus:text-gray-400 hover:text-gray-400 ml-3 text-gray-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler  icon-tabler-chevron-right" width="24" height="24" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                      <polyline points="9 6 15 12 9 18" />
+                    </svg>
+                  </button>
+
+                </div>
+              </div>
+              <div className='grid grid-cols-7 mt-10 text-xs leading-6 text-center text-gray-500'>
+                <div>Su</div>
+                <div>Mo</div>
+                <div>Tu</div>
+                <div>We</div>
+                <div>Th</div>
+                <div>Fr</div>
+                <div>Sa</div>
+              </div>
+              <div className='grid grid-cols-7 mt-2 text-sm py-2'>
+                {monthDay.map((day, dayIdx) => (
+                  <div
+                    key={day.toString()}
+                    className={classNames(
+                      dayIdx === 0 && colStartClasses[getDay(day)],
+                    )}
+                  >
+                    <button
+                      type='button'
+                      onClick={() => daySelect(day)}
+                      className={classNames(
+                        isEqual(day, selectedDay) && 'text-white',
+                        !isEqual(day, selectedDay) && isToday(day) && 'text-indigo-600',
+                        !isEqual(day, selectedDay) &&
+                        !isToday(day) &&
+                        isSameMonth(day, firstDayCurrentMonth) &&
+                        'text-gray-900',
+                        !isEqual(day, selectedDay) &&
+                        !isToday(day) &&
+                        !isSameMonth(day, firstDayCurrentMonth) &&
+                        'text-gray-400',
+                        isEqual(day, selectedDay) && isToday(day) && 'bg-indigo-600',
+                        isEqual(day, selectedDay) && !isToday(day) && 'bg-gray-900',
+                        !isEqual(day, selectedDay) && 'hover:bg-gray-200',
+                        (isEqual(day, selectedDay) || isToday(day)) && 'font-semibold',
+                        'mx-auto flex h-8 w-8 items-center justify-center rounded-full'
+                      )}
+                    >
+                      <time dateTime={format(day, 'yyyy-MM-dd')}>
+                        {format(day, 'd')}
+                      </time>
+                    </button>
+                  </div>
+                ))
+
+                }
+              </div>
+              {/* <div className="flex items-center justify-between pt-12 overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr>
+                      <th>
+                        <div className="w-full flex justify-center">
+                          <p className="text-base font-medium text-center text-gray-800 dark:text-gray-100">Su</p>
+                        </div>
+                      </th>
+                      <th>
+                        <div className="w-full flex justify-center">
+                          <p className="text-base font-medium text-center text-gray-800 dark:text-gray-100">Mo</p>
+                        </div>
+                      </th>
+                      <th>
+                        <div className="w-full flex justify-center">
+                          <p className="text-base font-medium text-center text-gray-800 dark:text-gray-100">Tu</p>
+                        </div>
+                      </th>
+                      <th>
+                        <div className="w-full flex justify-center">
+                          <p className="text-base font-medium text-center text-gray-800 dark:text-gray-100">We</p>
+                        </div>
+                      </th>
+                      <th>
+                        <div className="w-full flex justify-center">
+                          <p className="text-base font-medium text-center text-gray-800 dark:text-gray-100">Th</p>
+                        </div>
+                      </th>
+                      <th>
+                        <div className="w-full flex justify-center">
+                          <p className="text-base font-medium text-center text-gray-800 dark:text-gray-100">Fr</p>
+                        </div>
+                      </th>
+                      <th>
+                        <div className="w-full flex justify-center">
+                          <p className="text-base font-medium text-center text-gray-800 dark:text-gray-100">Sa</p>
+                        </div>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="pt-6">
+                        <div className="px-2 py-2 cursor-pointer flex w-full justify-center"></div>
+                      </td>
+                      <td className="pt-6">
+                        <div className="px-2 py-2 cursor-pointer flex w-full justify-center"></div>
+                      </td>
+                      <td>
+                        <div className="px-2 py-2 cursor-pointer flex w-full justify-center"></div>
+                      </td>
+                      <td className="pt-6">
+                        <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
+                          <p className="text-base text-gray-500 dark:text-gray-100 font-medium">1</p>
+                        </div>
+                      </td>
+                      <td className="pt-6">
+                        <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
+                          <p className="text-base text-gray-500 dark:text-gray-100 font-medium">2</p>
+                        </div>
+                      </td>
+                      <td className="pt-6">
+                        <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
+                          <p className="text-base text-gray-500 dark:text-gray-100">3</p>
+                        </div>
+                      </td>
+                      <td className="pt-6">
+                        <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
+                          <p className="text-base text-gray-500 dark:text-gray-100">4</p>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
+                          <p className="text-base text-gray-500 dark:text-gray-100 font-medium">5</p>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
+                          <p className="text-base text-gray-500 dark:text-gray-100 font-medium">6</p>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
+                          <p className="text-base text-gray-500 dark:text-gray-100 font-medium">7</p>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="w-full h-full">
+                          <div className="flex items-center justify-center w-full rounded-full cursor-pointer">
+                            <a role="link" tabindex="0" className="focus:outline-none  focus:ring-2 focus:ring-offset-2 focus:ring-indigo-700 focus:bg-indigo-500 hover:bg-indigo-500 text-base w-8 h-8 flex items-center justify-center font-medium text-white bg-indigo-700 rounded-full">8</a>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
+                          <p className="text-base text-gray-500 dark:text-gray-100 font-medium">9</p>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
+                          <p className="text-base text-gray-500 dark:text-gray-100">10</p>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
+                          <p className="text-base text-gray-500 dark:text-gray-100">11</p>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
+                          <p className="text-base text-gray-500 dark:text-gray-100 font-medium">12</p>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
+                          <p className="text-base text-gray-500 dark:text-gray-100 font-medium">13</p>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
+                          <p className="text-base text-gray-500 dark:text-gray-100 font-medium">14</p>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
+                          <p className="text-base text-gray-500 dark:text-gray-100 font-medium">15</p>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
+                          <p className="text-base text-gray-500 dark:text-gray-100 font-medium">16</p>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
+                          <p className="text-base text-gray-500 dark:text-gray-100">17</p>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
+                          <p className="text-base text-gray-500 dark:text-gray-100">18</p>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
+                          <p className="text-base text-gray-500 dark:text-gray-100 font-medium">19</p>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
+                          <p className="text-base text-gray-500 dark:text-gray-100 font-medium">20</p>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
+                          <p className="text-base text-gray-500 dark:text-gray-100 font-medium">21</p>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
+                          <p className="text-base text-gray-500 dark:text-gray-100 font-medium">22</p>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
+                          <p className="text-base text-gray-500 dark:text-gray-100 font-medium">23</p>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
+                          <p className="text-base text-gray-500 dark:text-gray-100">24</p>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
+                          <p className="text-base text-gray-500 dark:text-gray-100">25</p>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
+                          <p className="text-base text-gray-500 dark:text-gray-100 font-medium">26</p>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
+                          <p className="text-base text-gray-500 dark:text-gray-100 font-medium">27</p>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
+                          <p className="text-base text-gray-500 dark:text-gray-100 font-medium">28</p>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
+                          <p className="text-base text-gray-500 dark:text-gray-100 font-medium">29</p>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
+                          <p className="text-base text-gray-500 dark:text-gray-100 font-medium">30</p>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div> */}
+            </div>
           </div>
         </div>
 
-        <div className={styles.center}>
-          <Image
-            className={styles.logo}
-            src="/next.svg"
-            alt="Next.js Logo"
-            width={180}
-            height={37}
-            priority
-          />
-          <div className={styles.thirteen}>
-            <Image
-              src="/thirteen.svg"
-              alt="13"
-              width={40}
-              height={31}
-              priority
-            />
-          </div>
-        </div>
 
-        <div className={styles.grid}>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Docs <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Find in-depth information about Next.js features and&nbsp;API.
-            </p>
-          </a>
-
-          <a
-            href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Learn <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Learn about Next.js in an interactive course with&nbsp;quizzes!
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Templates <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Discover and deploy boilerplate example Next.js&nbsp;projects.
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Deploy <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Instantly deploy your Next.js site to a shareable URL
-              with&nbsp;Vercel.
-            </p>
-          </a>
-        </div>
       </main>
     </>
   )
 }
+
+let colStartClasses = [
+  '',
+  'col-start-2',
+  'col-start-3',
+  'col-start-4',
+  'col-start-5',
+  'col-start-6',
+  'col-start-7',
+]
